@@ -108,7 +108,6 @@ enum Snapshot3D {
         scene.addLayer(layer)
         RunLoop.main.run(until: Date().addingTimeInterval(1.5))   // let assets load
         for _ in 0..<(60 * 45) { scene.step(1.0 / 60.0) }
-        print((layer as? LeafLayer)?.debugSummary ?? "?")
         stage.setRunning(true)
         _ = stage.renderOffscreen(size: CGSize(width: 64, height: 64))
         RunLoop.main.run(until: Date().addingTimeInterval(0.5))

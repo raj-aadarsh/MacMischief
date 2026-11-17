@@ -610,13 +610,6 @@ final class LeafLayer: MischiefLayer {
         bakedNode.geometry = geo
     }
 
-    var debugSummary: String {
-        let states = Dictionary(grouping: leaves, by: { "\($0.state)" }).mapValues(\.count)
-        let pileInfo = pileList.map { "[y=\(Int($0.baseY)) x=\(Int($0.minX))-\(Int($0.maxX)) leaves=\($0.leaves.count) maxH=\(String(format: "%.1f", $0.heights.max() ?? 0)) vis=\($0.visible.filter { $0 }.count)/\($0.count)]" }
-        let bakedVerts = (bakedNode.geometry?.sources(for: .vertex).first?.vectorCount) ?? 0
-        return "leaves=\(leaves.count) states=\(states) resting=\(restingOrder.count) baked=\(bakedVerts) piles=\(pileInfo.joined(separator: " "))"
-    }
-
     // MARK: - Lifecycle
 
     override func dismiss(completion: @escaping () -> Void) {

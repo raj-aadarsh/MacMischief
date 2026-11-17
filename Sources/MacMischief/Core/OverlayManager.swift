@@ -79,27 +79,9 @@ final class Overlay {
             stage = s
             stageWindow = w
             scene.renderHook = { [weak s] in s?.render() }
-            scheduleDebugCapture()
         }
         stageUsers += 1
         return stage!
-    }
-
-    /// Developer aid: `defaults write <bundle-id> debugCapture -bool true` makes the
-    /// app save frames of its 3D layer into its sandbox temp folder.
-    private func scheduleDebugCapture() {
-        guard UserDefaults.standard.bool(forKey: "debugCapture") else { return }
-        for (i, delay) in [4.0, 9.0, 15.0].enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                MainActor.assumeIsolated {
-                    guard let self, let stage = self.stage else { return }
-                    stage.captureNextFrame = { image in
-                        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("stage-\(i).png")
-                        try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?.write(to: url)
-                    }
-                }
-            }
-        }
     }
 
     private func releaseStage() {
@@ -126,9 +108,6 @@ final class Overlay {
     func refresh() {
         let hiddenForFullScreen = hideInFullScreen && scene.geometry.isFullScreenCovered
         let wantShown = scene.hasLayers && !hiddenForFullScreen
-        if UserDefaults.standard.bool(forKey: "debugOverlay"), wantShown != shown {
-            OverlayScene.debugWrite("refresh wantShown=\(wantShown) layers=\(scene.hasLayers) full=\(hiddenForFullScreen) viewFrame=\(NSStringFromRect(view.frame))")
-        }
         guard wantShown != shown else { return }
         shown = wantShown
         if wantShown {

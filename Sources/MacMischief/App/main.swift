@@ -14,12 +14,6 @@ if let flag = CommandLine.arguments.firstIndex(of: "--snapshot3d"), CommandLine.
     exit(0)
 }
 
-if let flag = CommandLine.arguments.firstIndex(of: "--spike3d"), CommandLine.arguments.count > flag + 1 {
-    let dir = CommandLine.arguments[flag + 1]
-    MainActor.assumeIsolated { Spike3D.run(outDir: dir) }
-    exit(0)
-}
-
 if let flag = CommandLine.arguments.firstIndex(of: "--iconset"), CommandLine.arguments.count > flag + 1 {
     let dir = CommandLine.arguments[flag + 1]
     MainActor.assumeIsolated { SnapshotRenderer.renderIconSet(to: dir) }

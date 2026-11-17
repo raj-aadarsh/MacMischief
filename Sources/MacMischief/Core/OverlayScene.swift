@@ -1,6 +1,5 @@
 import AppKit
 import SpriteKit
-import os
 
 /// A transparent full-screen SpriteKit scene. Scene coordinates = points from the
 /// bottom-left corner of its screen.
@@ -20,7 +19,6 @@ final class OverlayScene: SKScene {
     /// Hooks to the overlay's shared 3D stage (for 3D characters).
     var acquireStage3D: (() -> Stage3D?)?
     var releaseStage3D: (() -> Void)?
-    var fpsDidChange: ((Int) -> Void)?
     /// Called once per frame after all mischief updates (renders the 3D layer).
     var renderHook: (() -> Void)?
 
@@ -102,30 +100,10 @@ final class OverlayScene: SKScene {
         if want != appliedFPS {
             appliedFPS = want
             view.preferredFramesPerSecond = want
-            fpsDidChange?(want)
         }
     }
 
     func step(_ dt: CGFloat) {
         for layer in layers { layer.update(dt: dt) }
-        debugTimer += dt
-        if debugTimer > 3, UserDefaults.standard.bool(forKey: "debugOverlay") {
-            debugTimer = 0
-            let v = view
-            let w = v?.window
-            Self.debugWrite("scene layers=\(self.layers.count) children=\(self.children.count) size=\(Int(self.size.width))x\(Int(self.size.height)) fullCovered=\(self.geometry.isFullScreenCovered) view=\(v.map { NSStringFromRect($0.frame) } ?? "nil") paused=\(v?.isPaused ?? true) super=\(v?.superview.map { String(describing: type(of: $0)) } ?? "nil") win=\(w != nil) visible=\(w?.isVisible ?? false) alpha=\(w?.alphaValue ?? -1) occl=\(w?.occlusionState.rawValue ?? 0) layerKids=\(self.layers.map { $0.children.count })")
-        }
-    }
-    private var debugTimer: CGFloat = 0
-    static func debugWrite(_ line: String) {
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("overlay-debug.txt")
-        let text = "\(Date()) \(line)\n"
-        if let h = try? FileHandle(forWritingTo: url) {
-            h.seekToEndOfFile()
-            h.write(text.data(using: .utf8)!)
-            try? h.close()
-        } else {
-            try? text.write(to: url, atomically: true, encoding: .utf8)
-        }
     }
 }

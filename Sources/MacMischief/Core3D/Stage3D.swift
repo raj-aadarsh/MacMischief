@@ -43,8 +43,6 @@ final class Stage3D {
     private var running = false
     private let start = CACurrentMediaTime()
     private let sampleCount = 4
-    /// Developer aid: grabs the next presented frame.
-    var captureNextFrame: ((CGImage) -> Void)?
 
     init(size: CGSize) {
         device = MTLCreateSystemDefaultDevice()!
@@ -75,19 +73,9 @@ final class Stage3D {
             layer.drawableSize = size
             layer.contentsScale = scale
         }
-        let wantCapture = captureNextFrame != nil
-        layer.framebufferOnly = !wantCapture
         guard let drawable = layer.nextDrawable(),
               let cb = queue.makeCommandBuffer() else { return }
         encode(into: drawable.texture, commandBuffer: cb)
-        if wantCapture, let capture = captureNextFrame {
-            captureNextFrame = nil
-            let tex = drawable.texture
-            cb.addCompletedHandler { _ in
-                let img = Stage3D.cgImage(from: tex)
-                DispatchQueue.main.async { if let img { capture(img) } }
-            }
-        }
         cb.present(drawable)
         cb.commit()
     }

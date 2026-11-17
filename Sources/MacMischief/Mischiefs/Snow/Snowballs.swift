@@ -1,5 +1,4 @@
 import SpriteKit
-import os
 
 /// Hover over piled-up snow to roll a snowball. Move along the pile to grow it,
 /// move off the snow to let go (it flies with your cursor's speed), then it
@@ -62,18 +61,7 @@ final class SnowballSystem {
         self.spawnClump = spawnClump
     }
 
-    private static let log = Logger(subsystem: "app.macmischief", category: "snowball")
-    private var logTimer: CGFloat = 0
-
     func update(dt: CGFloat, mouse: CGPoint, mouseVel: CGVector, piles: [SnowPile], size: CGSize, enabled: Bool) {
-        logTimer += dt
-        if logTimer > 3, UserDefaults.standard.bool(forKey: "debugSnow") {
-            logTimer = 0
-            let desc = piles.map { p in
-                "[y=\(Int(p.baseY)) x=\(Int(p.minX))-\(Int(p.maxX)) max=\(String(format: "%.1f", p.localMax(at: (p.minX + p.maxX) / 2, span: p.count))) underMouse=\(String(format: "%.1f", p.localMax(at: mouse.x, span: 3))) surf=\(p.surfaceY(at: mouse.x).map { String(format: "%.0f", $0) } ?? "nil")]"
-            }.joined(separator: " ")
-            Self.log.notice("mouse=(\(Int(mouse.x)),\(Int(mouse.y))) size=\(Int(size.width))x\(Int(size.height)) balls=\(self.balls.count) held=\(self.held != nil) enabled=\(enabled) piles=\(piles.count) \(desc, privacy: .public)")
-        }
         if enabled { handleCursor(dt: dt, mouse: mouse, mouseVel: mouseVel, piles: piles) }
         if !enabled, let h = held { release(h, mouseVel: .zero) }
 

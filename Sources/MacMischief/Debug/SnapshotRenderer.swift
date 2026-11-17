@@ -117,6 +117,7 @@ enum SnapshotRenderer {
         print("wrote \(url.path)")
     }
 
+    /// App icon: a bold "MM" monogram with a dapper curly mustache.
     private static func drawIcon(_ ctx: CGContext) {
         let tile = CGPath(roundedRect: CGRect(x: 100, y: 100, width: 824, height: 824),
                           cornerWidth: 185, cornerHeight: 185, transform: nil)
@@ -130,46 +131,104 @@ enum SnapshotRenderer {
         let g = CGGradient(colorsSpace: nil, colors: [rgb(0xFFA05A), rgb(0xFF5E8A), rgb(0x8F6BFF)] as CFArray,
                            locations: [0, 0.5, 1])!
         ctx.drawLinearGradient(g, start: CGPoint(x: 100, y: 924), end: CGPoint(x: 924, y: 100), options: [])
-        // Snow sprinkles
-        for (x, y, r) in [(220, 800, 16), (330, 860, 10), (800, 830, 18), (870, 720, 11), (180, 640, 9),
-                          (760, 900, 8), (900, 560, 13), (260, 300, 10), (840, 260, 12), (470, 880, 9)] as [(CGFloat, CGFloat, CGFloat)] {
-            ctx.paint(ellipse(x - r, y - r, r * 2, r * 2), fill: rgb(0xFFFFFF, 0.55))
+        // Soft glossy highlight across the top
+        let gloss = CGGradient(colorsSpace: nil, colors: [rgb(0xFFFFFF, 0.22), rgb(0xFFFFFF, 0)] as CFArray, locations: [0, 1])!
+        ctx.drawLinearGradient(gloss, start: CGPoint(x: 0, y: 924), end: CGPoint(x: 0, y: 560), options: [])
+        for (x, y, r) in [(210, 820, 12), (330, 868, 8), (812, 840, 14), (870, 742, 9), (176, 640, 7),
+                          (858, 300, 10), (232, 250, 8), (760, 190, 7)] as [(CGFloat, CGFloat, CGFloat)] {
+            ctx.paint(ellipse(x - r, y - r, r * 2, r * 2), fill: rgb(0xFFFFFF, 0.4))
         }
-        // Snowy ground
-        let ground = CGMutablePath()
-        ground.move(to: CGPoint(x: 100, y: 100))
-        ground.addLine(to: CGPoint(x: 100, y: 250))
-        ground.addCurve(to: CGPoint(x: 924, y: 240), control1: CGPoint(x: 380, y: 310), control2: CGPoint(x: 640, y: 190))
-        ground.addLine(to: CGPoint(x: 924, y: 100))
-        ground.closeSubpath()
-        ctx.paint(ground, fill: rgb(0xFFFFFF, 0.92))
         ctx.restoreGState()
 
-        // Cat head
-        ctx.saveGState()
-        ctx.translateBy(x: 512 - 23 * 15.5, y: 470 - 20 * 15.5)
-        ctx.scaleBy(x: 15.5, y: 15.5)
-        ctx.setShadow(offset: CGSize(width: 0, height: -0.6), blur: 1.5, color: rgb(0x000000, 0.25))
-        ctx.beginTransparencyLayer(auxiliaryInfo: nil)
-        for side in [CGFloat(-1), 1] {
+        // "MM" — two rounded, chunky letters drawn as thick strokes.
+        let letters = CGMutablePath()
+        let top: CGFloat = 720, bottom: CGFloat = 468, valley: CGFloat = 572
+        for (left, right) in [(CGFloat(214), CGFloat(452)), (CGFloat(572), CGFloat(810))] {
+            let mid = (left + right) / 2
+            letters.move(to: CGPoint(x: left, y: bottom))
+            letters.addLine(to: CGPoint(x: left, y: top))
+            letters.addLine(to: CGPoint(x: mid, y: valley))
+            letters.addLine(to: CGPoint(x: right, y: top))
+            letters.addLine(to: CGPoint(x: right, y: bottom))
+        }
+        func strokeLetters(_ color: CGColor, width: CGFloat, offset: CGSize = .zero) {
             ctx.saveGState()
-            ctx.translateBy(x: 23 + side * 8.2, y: 26.5)
-            ctx.rotate(by: -side * 0.22)
-            ctx.scaleBy(x: side < 0 ? 1 : -1, y: 1)
-            ctx.translateBy(x: -6, y: -1.2)
-            CatArt.drawEar(ctx)
+            ctx.translateBy(x: offset.width, y: offset.height)
+            ctx.addPath(letters)
+            ctx.setLineWidth(width)
+            ctx.setLineCap(.round)
+            ctx.setLineJoin(.round)
+            ctx.setStrokeColor(color)
+            ctx.strokePath()
             ctx.restoreGState()
         }
-        CatArt.drawHead(ctx)
-        ctx.endTransparencyLayer()
-        for cx in [CGFloat(18.3), 27.7] {
-            let eye = ellipse(cx - 3.3, 12.4, 6.6, 7.8)
-            ctx.paint(eye, fill: CatArt.iris)
-            ctx.paint(eye, stroke: CatArt.outline, width: 0.8)
-            ctx.paint(ellipse(cx - 1.8 + 0.6, 13.2, 3.6, 5.8), fill: CatArt.pupilColor)
-            ctx.paint(ellipse(cx - 1.2 + 0.6, 16.6, 1.6, 1.6), fill: rgb(0xFFFFFF))
+        ctx.saveGState()
+        ctx.setShadow(offset: CGSize(width: 0, height: -10), blur: 18, color: rgb(0x3A1030, 0.45))
+        strokeLetters(rgb(0xFFF6EE), width: 74)
+        ctx.restoreGState()
+        // Subtle top highlight on the letters
+        ctx.saveGState()
+        ctx.addPath(letters)
+        ctx.setLineWidth(74)
+        ctx.setLineCap(.round)
+        ctx.setLineJoin(.round)
+        ctx.replacePathWithStrokedPath()
+        ctx.clip()
+        let lg = CGGradient(colorsSpace: nil, colors: [rgb(0xFFFFFF), rgb(0xFFE7D6)] as CFArray, locations: [0, 1])!
+        ctx.drawLinearGradient(lg, start: CGPoint(x: 0, y: top + 40), end: CGPoint(x: 0, y: bottom - 40), options: [])
+        ctx.restoreGState()
+
+        // Handlebar mustache under the monogram.
+        let cx: CGFloat = 512, cy: CGFloat = 300
+        func half(_ s: CGFloat) -> CGMutablePath {
+            let p = CGMutablePath()
+            func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: cx + s * x, y: cy + y) }
+            p.move(to: pt(0, 38))
+            p.addCurve(to: pt(150, 52), control1: pt(40, 70), control2: pt(100, 72))
+            p.addCurve(to: pt(268, 92), control1: pt(205, 30), control2: pt(250, 40))
+            // curl up and back
+            p.addCurve(to: pt(240, 132), control1: pt(290, 118), control2: pt(268, 138))
+            p.addCurve(to: pt(224, 102), control1: pt(220, 128), control2: pt(210, 112))
+            p.addCurve(to: pt(150, -12), control1: pt(236, 70), control2: pt(212, -6))
+            p.addCurve(to: pt(0, -2), control1: pt(80, -18), control2: pt(30, -26))
+            p.closeSubpath()
+            return p
+        }
+        let stache = CGMutablePath()
+        stache.addPath(half(1))
+        stache.addPath(half(-1))
+        ctx.saveGState()
+        ctx.setShadow(offset: CGSize(width: 0, height: -8), blur: 14, color: rgb(0x2A0A20, 0.5))
+        ctx.paint(stache, fill: rgb(0x2B1A14))
+        ctx.restoreGState()
+        ctx.saveGState()
+        ctx.addPath(stache)
+        ctx.clip()
+        let sg = CGGradient(colorsSpace: nil, colors: [rgb(0x5A3A2A), rgb(0x2B1A14), rgb(0x1A0E0A)] as CFArray,
+                            locations: [0, 0.45, 1])!
+        ctx.drawLinearGradient(sg, start: CGPoint(x: 0, y: cy + 90), end: CGPoint(x: 0, y: cy - 30), options: [])
+        // Hair strands
+        for i in 0..<9 {
+            for s: CGFloat in [-1, 1] {
+                let x0 = cx + s * (20 + CGFloat(i) * 22)
+                let strand = CGMutablePath()
+                strand.move(to: CGPoint(x: x0, y: cy + 46 - CGFloat(i) * 1.5))
+                strand.addQuadCurve(to: CGPoint(x: x0 + s * 26, y: cy + 4), control: CGPoint(x: x0 + s * 18, y: cy + 34))
+                ctx.paint(strand, stroke: rgb(0x7A5440, 0.45), width: 3)
+            }
         }
         ctx.restoreGState()
+        // Little twinkle for mischief
+        let star = CGMutablePath()
+        let sc = CGPoint(x: 836, y: 790)
+        for k in 0..<8 {
+            let a = CGFloat(k) * .pi / 4
+            let r: CGFloat = k % 2 == 0 ? 46 : 12
+            let p = CGPoint(x: sc.x + cos(a) * r, y: sc.y + sin(a) * r)
+            if k == 0 { star.move(to: p) } else { star.addLine(to: p) }
+        }
+        star.closeSubpath()
+        ctx.paint(star, fill: rgb(0xFFFFFF, 0.92))
     }
 
     private static func renderPoses(to url: URL) {
