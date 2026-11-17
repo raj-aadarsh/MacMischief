@@ -12,6 +12,27 @@ A playful macOS menu bar app that brings your desktop to life. Pick a "mischief"
 
 Only one mischief runs at a time.
 
+## The menu bar app
+
+MacMischief lives entirely in your menu bar — there's no Dock icon and no main window. Everything is controlled from the 🐾 icon at the top of the screen.
+
+**The menu.** Clicking the icon opens a colourful popover:
+
+- **Header** with a bouncing emoji and a random cheeky tagline.
+- **One card per mischief**: tap a card to start it (it shows an **ON** badge), tap it again to stop it. Starting a new one automatically retires the current one with a short goodbye animation.
+- **All quiet 😴** stops whatever is running.
+- **Hide during full-screen 🍿** (on by default) fades the overlay out whenever an app goes full screen — handy for movies and presentations.
+- **Quit 👋** closes the app.
+
+**The icon changes with the mischief**: a paw when nothing is running, and a cat, dog, bolt, snowflake or leaf while that mischief is active.
+
+**Behaviour**
+
+- MacMischief remembers the last mischief you chose and resumes it the next time you open the app.
+- It does not start at login on its own. To open it again after quitting, launch it from Spotlight (⌘ Space → "MacMischief") or the Applications folder.
+- Multiple displays are supported: weather effects cover every screen; pets and Skybolt live on the main display.
+- To uninstall, quit it from the menu and drag `MacMischief.app` from Applications to the Bin.
+
 ## Safe by design
 
 - **Click-through:** the overlay ignores all mouse events — every click goes to your apps.
